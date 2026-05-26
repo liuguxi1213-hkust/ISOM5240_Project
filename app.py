@@ -4,6 +4,7 @@ import torch
 
 st.set_page_config(
     page_title="Customer Review Analysis",
+    page_icon="📊",
     layout="centered"
 )
 
@@ -17,50 +18,65 @@ def load_sentiment_pipeline():
         device=device
     )
 
+@st.cache_resource
+def load_summarization_pipeline():
+    return pipeline(
+        "summarization",
+        model="facebook/bart-large-cnn",
+        device=device
+    )
+
 sentiment_pipeline = load_sentiment_pipeline()
+summarization_pipeline = load_summarization_pipeline()
 
 label_map = {
     "LABEL_0": "Negative",
     "LABEL_1": "Positive"
 }
 
-def simple_summary(text):
-    sentences = text.replace("\n", " ").split(".")
-    sentences = [s.strip() for s in sentences if s.strip() != ""]
-    if len(sentences) == 0:
-        return "No summary available."
-    if len(sentences) == 1:
-        return sentences[0] + "."
-    return sentences[0] + ". " + sentences[1] + "."
-
-st.title("Customer Review Intelligent Analysis System")
+st.title("📊 Customer Review Intelligent Analysis System")
+st.markdown("Analyze customer reviews using **Sentiment Analysis** and **Automatic Summarization**.")
+st.divider()
 
 review = st.text_area(
     "Enter Customer Review",
+    placeholder="e.g. The product quality is excellent and delivery was fast...",
     height=200
 )
 
-if st.button("Analyze"):
+if st.button("Analyze", type="primary"):
     if review.strip() == "":
         st.warning("Please enter a review.")
     else:
-        sentiment_result = sentiment_pipeline(review)[0]
+        with st.spinner("Analyzing..."):
 
-        sentiment = label_map.get(
-            sentiment_result["label"],
-            sentiment_result["label"]
-        )
+            # Pipeline 1: Summarization
+            word_count = len(review.split())
+            if word_count >= 30:
+                summary_result = summarization_pipeline(
+                    review,
+                    max_length=60,
+                    min_length=20,
+                    do_sample=False
+                )
+                summary = summary_result[0]["summary_text"]
+            else:
+                summary = review
 
-        confidence = sentiment_result["score"]
+            # Pipeline 2: Sentiment Analysis
+            sentiment_result = sentiment_pipeline(review[:512])[0]
+            sentiment = label_map.get(sentiment_result["label"], sentiment_result["label"])
+            confidence = sentiment_result["score"]
 
-        summary = simple_summary(review)
+        st.subheader("📝 Summary")
+        st.info(summary)
 
-        st.subheader("Summary")
-        st.write(summary)
+        st.subheader("🎭 Sentiment")
+        if sentiment == "Positive":
+            st.success(f"✅ {sentiment}")
+        else:
+            st.error(f"❌ {sentiment}")
 
-        st.subheader("Sentiment")
-        st.write(sentiment)
-
-        st.subheader("Confidence Score")
+        st.subheader("📈 Confidence Score")
         st.progress(float(confidence))
-        st.write(round(confidence, 4))
+        st.caption(f"Confidence: {round(confidence * 100, 2)}%")
