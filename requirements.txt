@@ -5,3 +5,4 @@ accelerate
 sentencepiece
 sacremoses
 huggingface_hub
+transformers>=4.30.0
