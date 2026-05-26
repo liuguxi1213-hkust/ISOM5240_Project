@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import pipeline
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
 import torch
 
 st.set_page_config(
@@ -17,13 +17,12 @@ def load_sentiment_pipeline():
         model="Gliubf/distilbert-sst2-sentiment",
         device=device
     )
+
 @st.cache_resource
 def load_summarization_pipeline():
-    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
     tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
     model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
     return pipeline("summarization", model=model, tokenizer=tokenizer, device=device)
-    )
 
 sentiment_pipeline = load_sentiment_pipeline()
 summarization_pipeline = load_summarization_pipeline()
