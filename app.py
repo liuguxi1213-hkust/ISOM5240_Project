@@ -17,13 +17,12 @@ def load_sentiment_pipeline():
         model="Gliubf/distilbert-sst2-sentiment",
         device=device
     )
-
 @st.cache_resource
 def load_summarization_pipeline():
-    return pipeline(
-        "summarization",
-        model="facebook/bart-large-cnn",
-        device=device
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM, pipeline
+    tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
+    model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
+    return pipeline("summarization", model=model, tokenizer=tokenizer, device=device)
     )
 
 sentiment_pipeline = load_sentiment_pipeline()
