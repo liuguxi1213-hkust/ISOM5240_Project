@@ -102,4 +102,4 @@ Example Output:
 Guxi Liu
 
 MSBA Student  
-HKUST
+HKUST# ISOM5240_Project
