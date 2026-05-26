@@ -3,5 +3,5 @@ torch
 accelerate
 sentencepiece
 sacremoses
-transformers==4.40.0
+transformers
 huggingface_hub
